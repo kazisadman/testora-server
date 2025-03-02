@@ -4,6 +4,9 @@ import "dotenv/config";
 import cookieparser from "cookie-parser";
 import connectDb from "./server";
 
+import userRouter from "./modules/user/user.router";
+
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -22,6 +25,8 @@ connectDb();
 app.get("/", (req: Request, res: Response) => {
   res.send("hello world");
 });
+
+app.use("/api/v1", userRouter);
 
 
 app.listen(port, () => {
