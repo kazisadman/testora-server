@@ -16,13 +16,12 @@ const generateAccessToken = (
       _id,
       email,
     },
-    process.env.ACCESS_TOKEN_SECRET as string,
+    process.env.ACCESS_TOKEN_SECRET as string
   );
 };
 
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, image, password } = req.body;
-  console.log(image);
 
   if ([name, email, image, password].some((input) => input?.trim() === "")) {
     throw new errorHandler(400, "Input field is empty");
@@ -117,7 +116,7 @@ const logOutUser = asyncHandler(async (req, res) => {
     .json(new responseHandler(200, true, {}, "User logged out successfully"));
 });
 
-const getAllUser = asyncHandler(async (req, res) => {
+const getAllUser = asyncHandler(async (_, res) => {
   const result = await userService.getAllUserFromDb();
 
   if (!result) {
@@ -129,7 +128,6 @@ const getAllUser = asyncHandler(async (req, res) => {
     .json(new responseHandler(200, true, result, "User Fetched Successfully"));
 });
 
-
 const checkAuth = asyncHandler(async (req, res) => {
   const userInfo = (req as any).user;
   res
@@ -139,10 +137,28 @@ const checkAuth = asyncHandler(async (req, res) => {
     );
 });
 
+const getUserInterview = asyncHandler(async (req, res) => {
+  const userId = (req as any).user._id;
+
+  const result = await userService.getUserInterview(userId);
+
+  res
+    .status(200)
+    .json(
+      new responseHandler(
+        200,
+        true,
+        result,
+        "User Interviews Fetched Successfully"
+      )
+    );
+});
+
 export const userController = {
   registerUser,
   loginUser,
   logOutUser,
   getAllUser,
   checkAuth,
+  getUserInterview,
 };

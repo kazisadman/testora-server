@@ -9,5 +9,6 @@ router.post("/login", userController.loginUser);
 router.post("/logout", verifyJWT, userController.logOutUser);
 router.get("/", verifyJWT, userController.getAllUser);
 router.get("/check-auth", verifyJWT,userController.checkAuth);
+router.get("/interviews",verifyJWT,userController.getUserInterview)
 
 export default router;

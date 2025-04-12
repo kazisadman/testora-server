@@ -1,7 +1,8 @@
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import errorHandler from "../../utils/errorHandler";
 import { TRegisterUser } from "./user.interface";
 import User from "./user.model";
+import Interview from "../interview/interview.model";
 
 const findUserInDb = async (payload: string) => {
   const result = await User.findOne({ email: payload });
@@ -48,6 +49,45 @@ const getAllUserFromDb = async () => {
   return data;
 };
 
+const getUserInterview = async (payload: string) => {
+  const result = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(payload),
+      },
+    },
+    {
+      $lookup: {
+        from: "interviews",
+        localField: "_id",
+        foreignField: "user",
+        as: "interviews",
+      },
+    },
+    {
+      $unwind: "$interviews",
+    },
+    {
+      $project: {
+        _id: 0,
+        name: 0,
+        email: 0,
+        image: 0,
+        password: 0,
+        __v: 0,
+      },
+    },
+  ]);
+
+  if (result) {
+    return result;
+  } else {
+    throw new errorHandler(
+      500,
+      "Something went wrong while fetching user interviews."
+    );
+  }
+};
 
 export const userService = {
   findUserInDb,
@@ -55,4 +95,5 @@ export const userService = {
   findUserByIdInDb,
   logOutUserFromDb,
   getAllUserFromDb,
+  getUserInterview,
 };

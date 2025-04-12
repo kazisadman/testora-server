@@ -5,8 +5,7 @@ import cookieparser from "cookie-parser";
 import connectDb from "./server";
 
 import userRouter from "./modules/user/user.router";
-
-
+import interviewRouter from "./modules/interview/interview.router";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -27,7 +26,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/api/v1", userRouter);
-
+app.use("/api/v1", interviewRouter);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
