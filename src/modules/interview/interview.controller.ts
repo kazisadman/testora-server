@@ -27,6 +27,20 @@ const cleanResponseText = (responseText: string) => {
     );
   }
 };
+const cleanFeedbackText = (responseText: string) => {
+  let cleanText = responseText.trim();
+
+  cleanText = cleanText.replace(/(json|```|`)/g, "");
+
+  try {
+    return JSON.parse(cleanText);
+  } catch (error) {
+    throw new errorHandler(
+      400,
+      "Invalid JSON format: " + (error as Error)?.message
+    );
+  }
+};
 
 const generateAiResult = async (data: TInterViewFormData) => {
   const { title, description, experience, techStack } = data;
@@ -54,6 +68,29 @@ const generateAiResult = async (data: TInterViewFormData) => {
   const aiResult = await chatSession.sendMessage(prompt);
   const cleanDataResponse = cleanResponseText(aiResult.response.text().trim());
   return cleanDataResponse;
+};
+
+const generateAiFeedback = async (
+  question: string,
+  answer: string,
+  userAnswer: string
+) => {
+  const prompt = `
+    Quesion:"${question}"
+    User Answer: "${userAnswer}"
+    Correct Answer:"${answer}"
+    Please compare the user's answer to the correct answer, and provide a rating (from 1 to 10) based on answer quality, and offer feedback for improvement.
+    Return the result in JSON format with the fields "ratings" (number) and "feedback" (string).`;
+
+  const result = await chatSession.sendMessage(prompt);
+
+  if (!result) {
+    throw new errorHandler(404, "Feedback not found.");
+  }
+
+  const cleanDataFeedback = cleanFeedbackText(result.response.text().trim());
+
+  return cleanDataFeedback;
 };
 
 const createInterview = asyncHandler(async (req, res) => {
@@ -98,4 +135,25 @@ const getInterviewById = asyncHandler(async (req, res) => {
     );
 });
 
-export const interviewController = { createInterview, getInterviewById };
+const userAnswerFeedback = asyncHandler(async (req, res) => {
+  const { question, answer, userAnswer } = req.body;
+
+  const feedback = await generateAiFeedback(question, answer, userAnswer);
+
+  res
+    .status(200)
+    .json(
+      new responseHandler(
+        200,
+        true,
+        feedback,
+        "Feedback Generated Successfully"
+      )
+    );
+});
+
+export const interviewController = {
+  createInterview,
+  getInterviewById,
+  userAnswerFeedback,
+};
